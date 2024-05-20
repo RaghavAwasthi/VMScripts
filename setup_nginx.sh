@@ -1,5 +1,5 @@
 #!/bin/bash
-
+sudo apt install -y nginx git openssl
 # Generate a self-signed SSL certificate
 sudo mkdir -p /etc/nginx/ssl
 sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/selfsigned.key -out /etc/nginx/ssl/selfsigned.crt -subj "/CN=localhost"
