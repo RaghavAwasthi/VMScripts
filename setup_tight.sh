@@ -1,24 +1,25 @@
 #!/bin/bash
 
-
-
 # Create tiger service
-cat << EOF | sudo tee /etc/systemd/system/tightvnc.service
+sudo bash -c 'cat <<EOT >> /etc/systemd/system/vncserver.service
 [Unit]
-Description=Start noVNC at startup.
-After=multi-user.target
+Description=Start TightVNC server at startup
+After=syslog.target network.target
 
 [Service]
-Type=simple
+Type=forking
 User=ubuntu
-WorkingDirectory=/home/ubuntu
-ExecStart=/usr/bin/vncviewer :1
-Restart=on-failure
+PAMName=login
+PIDFile=/home/ubuntu/.vnc/%H:1.pid
+ExecStartPre=-/usr/bin/vncserver -kill :1 > /dev/null 2>&1
+ExecStart=/usr/bin/vncserver :1
+ExecStop=/usr/bin/vncserver -kill :1
 
 [Install]
 WantedBy=multi-user.target
-EOF
+EOT'
 
-# Enable and start tightvnc service
-sudo systemctl enable tightvnc.service
-sudo systemctl start tightvnc.service
+# Reload systemd, start and enable VNC service
+sudo systemctl daemon-reload
+sudo systemctl start vncserver
+sudo systemctl enable vncserver
