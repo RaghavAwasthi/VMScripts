@@ -1,4 +1,5 @@
 #!/bin/bash
+sudo apt update
 sudo apt install -y x11vnc git 
 PASSWORD_SET=$1
 PASSWORD=$2
