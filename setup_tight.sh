@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Create tiger service
-sudo bash -c 'cat <<EOT >> /etc/systemd/system/tightvnc.service
+cat << EOF | sudo tee /etc/systemd/system/tightvnc.service
 [Unit]
 Description=Start TightVNC server at startup
 After=syslog.target network.target
@@ -15,7 +15,7 @@ ExecStop=/usr/bin/vncserver -kill :1
 
 [Install]
 WantedBy=multi-user.target
-EOT'
+EOF
 
 # Reload systemd, start and enable VNC service
 sudo systemctl daemon-reload
