@@ -10,9 +10,10 @@ After=multi-user.target
 
 [Service]
 Type=simple
-ExecStart=vncserver :1
-Restart=always
-RestartSec=10
+User=ubuntu
+WorkingDirectory=/home/ubuntu
+ExecStart=/usr/bin/vncviewer :1
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
