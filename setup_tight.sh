@@ -9,9 +9,7 @@ After=syslog.target network.target
 [Service]
 Type=forking
 User=ubuntu
-PAMName=login
-PIDFile=/home/ubuntu/.vnc/%H:1.pid
-ExecStartPre=-/usr/bin/vncserver -kill :1 > /dev/null 2>&1
+ExecStartPre=-/usr/bin/vncserver -kill :1 
 ExecStart=/usr/bin/vncserver :1
 ExecStop=/usr/bin/vncserver -kill :1
 
