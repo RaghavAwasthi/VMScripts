@@ -31,12 +31,6 @@ sudo apt install -y nginx git openssl
 
 # Configure nginx
 sudo tee /etc/nginx/sites-available/default > /dev/null <<EOF
-server {
-    listen 80;
-    server_name _;
-
-
-}
 
 server {
     listen 80 ;
