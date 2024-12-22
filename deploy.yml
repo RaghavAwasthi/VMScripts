@@ -1,0 +1,167 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: templateapp
+  labels:
+    name: templateapp
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: templateapp-configmap
+  namespace: templateapp
+data:
+  PORT: "8000"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: templateapp-deployment
+  namespace: templateapp
+spec:
+  replicas: 8
+  selector:
+    matchLabels:
+      app: templateapp
+  template:
+    metadata:
+      labels:
+        app: templateapp
+    spec:
+      containers:
+      - name: templateapp
+        image: 342566061177.dkr.ecr.ap-south-1.amazonaws.com/krutrimocr:v0.2.4
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 200
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+
+        envFrom:
+        - configMapRef:
+            name: templateapp-configmap
+        - secretRef:
+            name: templateapp-secret
+        volumeMounts:
+        - name: templateapp-secret
+          mountPath: /creds/serviceaccount.json
+          subPath: serviceaccount.json
+          readOnly: true          
+        resources:
+          requests:
+            cpu: "1"
+            memory: "4Gi"
+          limits:
+            cpu: "1"
+            memory: "4Gi"
+      volumes:
+      - name: templateapp-secret
+        secret:
+          secretName: templateapp-secret
+          items:
+          - key: serviceaccount.json
+            path: serviceaccount.json
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: templateapp-service
+  namespace: templateapp
+spec:
+  selector:
+    app: templateapp
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8000
+    targetPort: 8000
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ai-model-templateapp
+  namespace: templateapp
+  annotations:
+    kubernetes.io/ingress.className: nginx-int
+    nginx.org/client-max-body-size: "500m"
+    nginx.ingress.kubernetes.io/proxy-body-size: "500m"
+spec:
+  ingressClassName: nginx-corp
+  rules:
+  - host: templateapp.basti.corp.platform
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: templateapp-service
+            port:
+              number: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ai-model-templateapp-int
+  namespace: templateapp
+  annotations:
+    kubernetes.io/ingress.className: nginx-int
+    nginx.org/client-max-body-size: "500m"
+    nginx.ingress.kubernetes.io/proxy-body-size: "500m"
+
+spec:
+  ingressClassName: nginx-int
+  rules:
+  - host: templateapp.basti.int.lb
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: templateapp-service
+            port:
+              number: 8000
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ai-model-templateapp-int-larg
+  namespace: templateapp
+  annotations:
+    kubernetes.io/ingress.className: nginx-corp
+    nginx.org/client-max-body-size: "100M"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100M"
+
+spec:
+  ingressClassName: nginx-corp
+  rules:
+  - host: templateapplarge.basti.corp.platform
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: templateapp-service
+            port:
+              number: 8000
